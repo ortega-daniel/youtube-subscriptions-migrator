@@ -28,11 +28,41 @@ old_subs = youtube.subscriptions().list(
     mine=True
 ).execute()
 
-# print ID from each channel in the result set
-print(' Your subscriptions '.center(50, '='))
+# first run get next page token if it exists
+try:
+    next_page_token = old_subs['nextPageToken']
+except KeyError:
+    next_page_token = None
+
+# list of dicts
+subscriptions = []
+
+# add each result to list
 for sub in old_subs['items']:
-    print(f'{sub["snippet"]["title"]} - {sub["snippet"]["resourceId"]["channelId"]}')
+    # subscriptions.append({channelTitle: channelId})
+    subscriptions.append({sub['snippet']['title']: sub['snippet']['resourceId']['channelId']})
 
+# get the next values on result set
+while next_page_token:
+    # request using nextPageToken
+    old_subs = youtube.subscriptions().list(
+        part='snippet',
+        order='alphabetical',
+        maxResults = max_results,
+        pageToken = next_page_token,
+        mine=True
+    ).execute()
 
+    # add each result to list
+    for sub in old_subs['items']:
+        # subscriptions.append({channelTitle: channelId})
+        subscriptions.append({sub['snippet']['title']: sub['snippet']['resourceId']['channelId']})
+        
+    # if there are more pages get next page token
+    try:
+        next_page_token = old_subs['nextPageToken']
+    except KeyError:
+        next_page_token = None
     
+print(subscriptions) 
 
