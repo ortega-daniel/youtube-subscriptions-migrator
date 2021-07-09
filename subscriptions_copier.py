@@ -1,7 +1,7 @@
 # Created by Daniel Ortega, July 2021
 # ic.danielortega@gmail.com
  
-import pprint
+import sys
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
@@ -79,24 +79,44 @@ credentials = get_credentials(client_secrets_file_path, scopes)
 # get subscriptions list from the old channel
 old_subs = get_subs_auth_account(credentials)
 
-new_subs = None
+# if old subs list is empty
+if not old_subs:
+    print('You have no subscriptions to copy')
+    sys.exit()
 
-# if old subs list is not empty then
-if old_subs:
-    # get credentials for the new channel
-    credentials = get_credentials(client_secrets_file_path, scopes, port=8081)
-    # get subscriptions list from the new channel
-    new_subs = get_subs_auth_account(credentials)
-else:
-    print('You have no subscriptions to copy.')
+# get credentials for the new channel
+credentials = get_credentials(client_secrets_file_path, scopes, port=8081)
+# get subscriptions list from the new channel
+new_subs = get_subs_auth_account(credentials)
 
-pprint.pprint(old_subs)
-pprint.pprint(new_subs)
+new_subs_ids = []
+
+# if new subs list is not empty
+if new_subs:
+    # create list containing the IDs of each channel the user is subscribe to
+    for sub in new_subs:
+        new_subs_ids.append(sub['id'])
 
 # insert subs from old channel into new channel
+youtube = build(api_service_name, api_version, credentials=credentials)
+for sub in old_subs:
+    if sub['id'] not in new_subs_ids:
+        # insert subscription
+        insert = youtube.subscriptions().insert(
+            part="snippet",
+            body={
+                "snippet": {
+                    "resourceId": {
+                        "kind": "youtube#channel",
+                        "channelId": sub['id']
+                    }
+                }
+            }
+        ).execute()
 
+    print(f'New subscription added: {sub["title"]}')
 
-
+print('that\'s all folks')
 
 
 
