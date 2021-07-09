@@ -46,7 +46,7 @@ def get_subs_auth_account(credentials):
 
     # add each result to list
     for sub in subs['items']:
-        # [{channelTitle: channelId}]
+        # [{'title': channelTitle, 'id': channelId}]
         subscriptions.append({'title': sub['snippet']['title'], 'id': sub['snippet']['resourceId']['channelId']})
 
     # get the next values from result set
