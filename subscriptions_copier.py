@@ -5,29 +5,29 @@ import sys
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
-scopes = ['https://www.googleapis.com/auth/youtube', 'https://www.googleapis.com/auth/youtube.readonly']
-api_service_name = 'youtube'
-api_version = 'v3'
-client_secrets_file_path = 'client_secret.json'
-max_results = 50
+SCOPES = ['https://www.googleapis.com/auth/youtube', 'https://www.googleapis.com/auth/youtube.readonly']
+API_SERVICE_NAME = 'youtube'
+API_VERSION = 'v3'
+CLIENT_SECRETS_FILE_PATH = 'client_secret.json'
+MAX_RESULTS = 50
 
 # returns credentials from the OAuth2.0 session
-def get_credentials(client_secrets_file, scopes, port=8080):
+def get_credentials(client_secrets_file, SCOPES, port=8080):
     # OAuth2.0 authentication flow
-    flow = InstalledAppFlow.from_client_secrets_file(client_secrets_file, scopes)
+    flow = InstalledAppFlow.from_client_secrets_file(client_secrets_file, SCOPES)
     flow.run_local_server(port=port, prompt='consent', authorization_prompt_message='')
 
     return flow.credentials
 
 # returns a list of dictionarys of the authenticated user's subsriptions
 def get_subs_auth_account(credentials):
-    youtube = build(api_service_name, api_version, credentials=credentials)
+    youtube = build(API_SERVICE_NAME, API_VERSION, credentials=credentials)
 
     # get list of subs from auth user
     subs = youtube.subscriptions().list(
         part='snippet',
         order='alphabetical',
-        maxResults = max_results,
+        maxResults = MAX_RESULTS,
         mine=True
     ).execute()
 
@@ -39,7 +39,7 @@ def get_subs_auth_account(credentials):
     try:
         next_page_token = subs['nextPageToken']
     except KeyError:
-        # key error means subs <= max_results
+        # key error means subs <= MAX_RESULTS
         next_page_token = None
     
     subscriptions = []
@@ -51,11 +51,11 @@ def get_subs_auth_account(credentials):
 
     # get the next values from result set
     while next_page_token:
-        # request next {max_results} results using nextPageToken
+        # request next {MAX_RESULTS} results using nextPageToken
         subs = youtube.subscriptions().list(
             part='snippet',
             order='alphabetical',
-            maxResults = max_results,
+            maxResults = MAX_RESULTS,
             pageToken = next_page_token,
             mine=True
         ).execute()
@@ -75,7 +75,7 @@ def get_subs_auth_account(credentials):
     return subscriptions
 
 # get credentials for the old channel
-credentials = get_credentials(client_secrets_file_path, scopes)
+credentials = get_credentials(CLIENT_SECRETS_FILE_PATH, SCOPES)
 # get subscriptions list from the old channel
 old_subs = get_subs_auth_account(credentials)
 
@@ -85,7 +85,7 @@ if not old_subs:
     sys.exit()
 
 # get credentials for the new channel
-credentials = get_credentials(client_secrets_file_path, scopes, port=8081)
+credentials = get_credentials(CLIENT_SECRETS_FILE_PATH, SCOPES, port=8081)
 # get subscriptions list from the new channel
 new_subs = get_subs_auth_account(credentials)
 
@@ -98,7 +98,7 @@ if new_subs:
         new_subs_ids.append(sub['id'])
 
 # insert subs from old channel into new channel
-youtube = build(api_service_name, api_version, credentials=credentials)
+youtube = build(API_SERVICE_NAME, API_VERSION, credentials=credentials)
 for sub in old_subs:
     if sub['id'] not in new_subs_ids:
         # insert subscription
@@ -116,10 +116,6 @@ for sub in old_subs:
 
     print(f'New subscription added: {sub["title"]}')
 
-print('that\'s all folks')
-
-
-
-
+print("that's all folks")
 
 
