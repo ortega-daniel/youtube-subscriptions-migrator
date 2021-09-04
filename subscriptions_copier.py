@@ -19,7 +19,7 @@ def get_credentials(client_secrets_file, SCOPES, port=8080):
 
     return flow.credentials
 
-# returns a list of dictionarys of the authenticated user's subsriptions
+# returns a list of dictionarys of the authenticated user subsriptions
 def get_subs_auth_account(credentials):
     youtube = build(API_SERVICE_NAME, API_VERSION, credentials=credentials)
 
